@@ -318,7 +318,6 @@ void AArcadeCarPawn::CalculateAccelerationForces(TObjectPtr<UWheelSceneComponent
 	{
 		if (Wheel->bIsGrounded)
 		{
-			//wee
 			//TODO: Look at 2D platformer controller for inspo on forces calcs? -> Max speed/Gear maybe instead of rpm idk
 			if (_AcceleratorPedalPosition > 0)
 			{
