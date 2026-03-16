@@ -96,6 +96,11 @@ void AArcadeCarPawn::OnConstruction(const FTransform &Transform)
 
 		}
 	}
+
+	for (int gear = 0; gear < GearsArray.Num(); ++gear)
+	{
+		if(GearsArray[gear].GearUpRPM > VehicleData.MaxRPM) GearsArray[gear].GearUpRPM = VehicleData.MaxRPM; //Ensure cant gear up past gear RPM
+	}
 }
 
 void AArcadeCarPawn::BeginPlay()
@@ -110,7 +115,7 @@ void AArcadeCarPawn::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	
 	UpdateWheelAngle(DeltaTime);
-	UpdateCurrentRPM(DeltaTime);
+	UpdateCurrentEngineRPM(DeltaTime);
 	_CurrentTorque = GetTorqueAtRPM(_CurrentRPM);
 	_CurrentVehicleSpeed = GetVehicleCurrentSpeed();
 
@@ -125,7 +130,7 @@ void AArcadeCarPawn::Tick(float DeltaTime)
 		}
 		if (GEngine)
 		{
-			GEngine->AddOnScreenDebugMessage(1231,-1.0f, FColor::Green, FString::Printf(TEXT("Current Speed: %f Accel Pedal Position: %f"), _CurrentVehicleSpeed, _AcceleratorPedalPosition));
+			GEngine->AddOnScreenDebugMessage(1231,-1.0f, FColor::Green, FString::Printf(TEXT("Current Speed: %f Accel Pedal Position: %f"), _CurrentVehicleSpeed, _Throttle));
 		}
 	}
 #endif
@@ -143,36 +148,18 @@ void AArcadeCarPawn::UpdateWheelAngle(float DeltaTime)
 	FR_Wheel->SetRelativeRotation(FRotator(0,_CurrentTurnAngle,0));
 }
 
-void AArcadeCarPawn::UpdateCurrentRPM(float DeltaTime)
+void AArcadeCarPawn::UpdateCurrentEngineRPM(float DeltaTime)
 {
-	float RPMPercentile = FMath::Clamp(FMath::Abs(_CurrentRPM / VehicleData.MaxRPM), 0.0f, 1.0f);
-	float RevSpeed = VehicleData.RevUpSpeed * (VehicleData.TorqueCurve != nullptr ? VehicleData.TorqueCurve->GetFloatValue(RPMPercentile) : 1.0f);
+	//Calculate RPM differential
+	//_CurrentRPM += FMath::Clamp(TCValue + /*EngineBreaking*/ - EngineFriction, VehicleData.IdleRPM, VehicleData.MaxRPM) * DeltaTime;
+	const float torque = VehicleData.TorqueCurve->GetFloatValue(_Throttle) * VehicleData.MaxRPM * GetCurrentGearRatio();
+	_CurrentRPM += (torque * _Throttle - (EngineFriction * _CurrentRPM)) * DeltaTime;
+	_CurrentRPM = FMath::Clamp(_CurrentRPM, VehicleData.IdleRPM, VehicleData.MaxRPM);
+
+	//if(_CurrentGearNumber != GearsArray.Num()-1 && _CurrentRPM >= GearsArray[_CurrentGearNumber].GearUpRPM) GearUp(); //TODO: Make bool for automatic/manaul
 	
-	if (_AcceleratorPedalPosition > 0)
-	{
-		if (_CurrentRPM < VehicleData.MaxRPM)
-		{
-			//Increase RPM
-			_CurrentRPM += DeltaTime * RevSpeed;
-		}
-		else
-		{
-			//Limit to max
-			_CurrentRPM = VehicleData.MaxRPM;
-		}
-	}
-	else
-	{
-		//TODO: Revhang?
-		if (_CurrentRPM > VehicleData.IdleRPM)
-		{
-			//Decrease RPM
-			_CurrentRPM -= DeltaTime * VehicleData.RevDownSpeed;	
-		}
-		else _CurrentRPM = VehicleData.IdleRPM;
-	}
 #if WITH_EDITOR
-	if (GEngine) GEngine->AddOnScreenDebugMessage(213123, -1,FColor::Green, FString::Printf(TEXT("Current RPM: %f Current Torque: %f RevSpeed: %f"), _CurrentRPM, GetTorqueAtRPM(_CurrentRPM), RevSpeed));
+	if (GEngine) GEngine->AddOnScreenDebugMessage(213123, -1,FColor::Green, FString::Printf(TEXT("Current RPM: %f Current Torque: %f Current Gear: %d"), _CurrentRPM, GetTorqueAtRPM(_CurrentRPM), _CurrentGearNumber));
 #endif
 }
 
@@ -181,21 +168,39 @@ float AArcadeCarPawn::GetVehicleCurrentSpeed() const
 	return FVector::DotProduct(VehiclePhysicsComponent->GetForwardVector(), VehiclePhysicsComponent->GetComponentVelocity());
 }
 
+//GEARING
 float AArcadeCarPawn::GetCurrentGearRatio() const
 {
-	return _CurrentGear.GearRatio / 1;
+	return GearsArray[_CurrentGearNumber].GearRatio / 1;
+}
+
+void AArcadeCarPawn::GearUp()
+{
+	if(_CurrentGearNumber < GearsArray.Num()-1) _CurrentGearNumber++;
+	//SetCurrentRPM(GearsArray[_CurrentGearNumber].GearDownRPM);
+}
+
+void AArcadeCarPawn::GearDown()
+{
+	if(_CurrentGearNumber > 0) _CurrentGearNumber--; //TODO: REVERSE?
+	SetCurrentRPM(GearsArray[_CurrentGearNumber].GearUpRPM);
 }
 
 float AArcadeCarPawn::GetTorqueAtRPM(float RPM) const
 {
-	float RPMPercentile = FMath::Clamp(FMath::Abs(RPM / VehicleData.MaxRPM), 0.0f, 1.0f);
+	const float RPMPercentile = FMath::Clamp(FMath::Abs(RPM / VehicleData.MaxRPM), 0.0f, 1.0f);
 	if (VehicleData.TorqueCurve != nullptr) return VehicleData.TorqueCurve->GetFloatValue(RPMPercentile) * VehicleData.MaxTorque;
 	else return 0.0f;
 }
 
+void AArcadeCarPawn::SetCurrentRPM(float RPM)
+{
+	_CurrentRPM = RPM;
+}
+
 void AArcadeCarPawn::SetAccelPedalPosition(float pedalVal)
 {
-	_AcceleratorPedalPosition = pedalVal;
+	_Throttle = pedalVal;
 }
 
 void AArcadeCarPawn::SetBrakePedalPosition(float pedalVal)
@@ -214,19 +219,57 @@ void AArcadeCarPawn::AsyncPhysicsTickActor(float DeltaTime, float SimTime)
 	//Update Wheel Components
 	for (int Wheel = 0; Wheel < WheelsArray.Num(); ++Wheel)
 	{
+		//Calculate Engine Forces
+		//GetForceAtWheels();
+		
 		TObjectPtr<UWheelSceneComponent> currentWheel = WheelsArray[Wheel];
 		if (currentWheel != nullptr)
 		{
+			//Calculate Suspension Forces
 			ApplySuspensionForce(currentWheel);
+
+			//Calculate Sliding and turning forces
 			ApplyLateralForces(currentWheel, DeltaTime);
-			//ApplyAccelerationForces(currentWheel, DeltaTime);
-			CalculateAccelerationForces(currentWheel);
+
+			//Force At wheel * wheel rad = force?
+			ApplyAccelerationForcesAtWheel(currentWheel);
 		}
 	}
 }
 
+///ACCELERATION
+void AArcadeCarPawn::ApplyAccelerationForcesAtWheel(TObjectPtr<UWheelSceneComponent> Wheel)
+{
+	FVector force = FVector::ZeroVector;
+	if (_Throttle > 0)
+	{
+		switch (VehicleData.VehicleDriveType)
+		{
+		case EVehicleDriveType::FrontWheelDrive:
+			if (Wheel == Fl_Wheel || Wheel == FR_Wheel)
+			{
+				force = Wheel->GetForwardVector() * (_CurrentTorque / 2) * Wheel->WheelRadius * GetCurrentGearRatio();
+				VehiclePhysicsComponent->AddForceAtLocation(force, Wheel->GetComponentLocation());
+			}
+			break;
+		case EVehicleDriveType::RearWheelDrive:
+			if (Wheel == RL_Wheel || Wheel == RR_Wheel)
+			{
+				force = Wheel->GetForwardVector() * (_CurrentTorque / 2) * Wheel->WheelRadius * GetCurrentGearRatio();
+				VehiclePhysicsComponent->AddForceAtLocation(force, Wheel->GetComponentLocation());
+			}
+			break;
+		case EVehicleDriveType::AllWheelDrive:
+			force = Wheel->GetForwardVector() * (_CurrentTorque / 4) * Wheel->WheelRadius * GetCurrentGearRatio();
+			VehiclePhysicsComponent->AddForceAtLocation(force, Wheel->GetComponentLocation());
+			break;
+		}
+		if(force != FVector::Zero()) DrawDebugDirectionalArrow(GetWorld(),Wheel->GetComponentLocation(),Wheel->GetComponentLocation() + force,5.0f,FColor::Blue);
+	}
+}
+
 //SUSPENSION
-FVector AArcadeCarPawn::ApplySuspensionForce(TObjectPtr<UWheelSceneComponent> Wheel)
+void AArcadeCarPawn::ApplySuspensionForce(TObjectPtr<UWheelSceneComponent> Wheel) const
 {
 	FVector force = FVector::ZeroVector;
 	
@@ -285,29 +328,40 @@ FVector AArcadeCarPawn::ApplySuspensionForce(TObjectPtr<UWheelSceneComponent> Wh
 	{
 		Wheel->bIsGrounded = false;
 	}
-	return force;
 }
 
 ///STEERING AND SLIDING
-FVector AArcadeCarPawn::ApplyLateralForces(TObjectPtr<UWheelSceneComponent> Wheel, float DeltaTime)
+void AArcadeCarPawn::ApplyLateralForces(TObjectPtr<UWheelSceneComponent> Wheel, float DeltaTime) const
 {
 	FVector force = FVector::ZeroVector;
 	
 	if (Wheel->bIsGrounded)
 	{
 		//Get Wheel Velocity
-		FVector wheelVelocity = VehiclePhysicsComponent->GetPhysicsLinearVelocityAtPoint(Wheel->GetComponentLocation());
+		const FVector wheelVelocity = VehiclePhysicsComponent->GetPhysicsLinearVelocityAtPoint(Wheel->GetComponentLocation());
 	
 		//Get current wheel sliding velocity
-		float slidingMagnitude = FVector::DotProduct(Wheel->GetRightVector(), wheelVelocity);
-		float targetVelocity = -slidingMagnitude * Wheel->TyreGrip; //TODO: make tyreGrip query a grip curve based on slidingMagnitude
-		float targetForce = targetVelocity / DeltaTime;
+		const float slidingMagnitude = FVector::DotProduct(Wheel->GetRightVector(), wheelVelocity);
+		const float targetVelocity = -slidingMagnitude * Wheel->TyreGrip; //TODO: make tyreGrip query a grip curve based on slidingMagnitude
+		const float targetForce = targetVelocity / DeltaTime;
 		force = Wheel->GetRightVector() * targetForce * (Wheel->TyreMass/10);
 	
 		VehiclePhysicsComponent->AddForceAtLocation(force, Wheel->GetComponentLocation());
-		return force;
 	}
-	else return force;
+}
+
+
+//Graveyard
+#pragma region
+/*
+
+void AArcadeCarPawn::GetForceAtWheels()
+{
+	//Lookup base torque
+	float torque = GetTorqueAtRPM(_CurrentRPM);
+
+	//Pass through transmission
+	
 }
 
 void AArcadeCarPawn::CalculateAccelerationForces(TObjectPtr<UWheelSceneComponent> Wheel)
@@ -346,7 +400,8 @@ void AArcadeCarPawn::CalculateAccelerationForces(TObjectPtr<UWheelSceneComponent
 		}
 	}
 }
-
+*/
+#pragma endregion
 
 //TODO: Gearing?
 //ACCEL AND BRAKING

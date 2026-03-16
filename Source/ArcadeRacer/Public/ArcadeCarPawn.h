@@ -3,10 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "InputActionValue.h"
 #include "GameFramework/Pawn.h"
 #include "WheelSceneComponent.h"
-#include "PhysicsEngine/BodyInstance.h"
 #include "Camera/CameraComponent.h"
 #include "Components/BoxComponent.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -21,13 +19,19 @@ enum class EVehicleDriveType : uint8
 	AllWheelDrive,
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FGear
 {
 	GENERATED_BODY()
-	int32 GearNumber = 1;
-	//EG GearRatio:1
-	int32 GearRatio = 3;
+
+	UPROPERTY(EditAnywhere,BlueprintReadOnly)
+	float GearRatio = 2.5;
+
+	UPROPERTY(EditAnywhere,BlueprintReadOnly)
+	int32 GearUpRPM = 5800;
+
+	UPROPERTY(EditAnywhere,BlueprintReadOnly)
+	int32 GearDownRPM = 0;
 };
 
 USTRUCT(BlueprintType)
@@ -125,6 +129,15 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Vehicle Data | Wheels")
 	TArray<TObjectPtr<UWheelSceneComponent>> WheelsArray;
 
+	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "Vehicle Data | Gearing")
+	TArray<FGear> GearsArray;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Vehicle Data | Engine")
+	float EngineFriction = 0.9;
+
+	UPROPERTY(EditAnywhere)
+	float BrakeForce = 10.0f;
+
 private:
 	float _CurrentTurnAngle = 0.0f;
 	float _TargetTurnAngle = 0.0f;
@@ -132,13 +145,13 @@ private:
 	float _SpeedPercentile = 0.0f;
 	
 	//0-1 value of where accel 'pedal' is
-	float _AcceleratorPedalPosition = 0.0f;
+	float _Throttle = 0.0f;
 	//where brake 'pedal' is
 	float _BrakePedalPosition = 0.0f;
 	
 	float _CurrentRPM = 0.0f;
 	float _CurrentTorque = 0.0f;
-	FGear _CurrentGear = FGear(1,3);
+	int16 _CurrentGearNumber;
 	
 //Functions
 public:	
@@ -164,12 +177,20 @@ protected:
 	UFUNCTION()
 	float GetCurrentGearRatio() const;
 
+	UFUNCTION()
+	void GearUp();
+
+	UFUNCTION()
+	void GearDown();
+
 private:
 	///Calculates and applies suspension forces and positions wheel mesh. 
 	///Returns force applied to wheel
-	FVector ApplySuspensionForce(TObjectPtr<UWheelSceneComponent> Wheel);
-	FVector ApplyLateralForces(TObjectPtr<UWheelSceneComponent> Wheel, float DeltaTime);
-	void CalculateAccelerationForces(TObjectPtr<UWheelSceneComponent> Wheel);
-	void UpdateCurrentRPM(float DeltaTime);
+	void ApplySuspensionForce(TObjectPtr<UWheelSceneComponent> Wheel) const;
+	void ApplyLateralForces(TObjectPtr<UWheelSceneComponent> Wheel, float DeltaTime) const;
+	//void GetForceAtWheels();
+	void UpdateCurrentEngineRPM(float DeltaTime);
+	void ApplyAccelerationForcesAtWheel(TObjectPtr<UWheelSceneComponent> Wheel);
 	float GetTorqueAtRPM(float RPM) const;
+	void SetCurrentRPM(float RPM);
 };
