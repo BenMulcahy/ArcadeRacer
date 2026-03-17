@@ -33,9 +33,14 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) //TODO: 0-1 range 0 no grip 1 full grip
 	float TyreGrip = 0.1f;
+
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	float TyreRollingResistance = 0.6f;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float TyreMass = 9.0;
+	
+	float WheelAngularVelocity;
 	
 	//TODO: Make setters and getters and private these
 	float SuspensionForce = 0.0f;
@@ -44,13 +49,16 @@ public:
 	
 	private:
 	FVector WheelMeshTargetLocation;
-	
+
 	public:
 	UFUNCTION(BlueprintCallable)
 	virtual void SetWheelMeshLocation(const FVector& NewLocation);
 	
 	UFUNCTION(BlueprintCallable)
 	virtual FVector GetWheelMeshLocation();
+
+	UFUNCTION(BlueprintCallable)
+	virtual float GetWheelAngularVelocity();
 };
 
 		

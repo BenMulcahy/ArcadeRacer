@@ -77,6 +77,9 @@ struct FVehicleData
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	int32 IdleRPM = 1200;
+	
+	UPROPERTY(EditAnywhere)
+	float BrakeForce = 10.0f;
 };
 
 UCLASS()
@@ -135,9 +138,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Vehicle Data | Engine")
 	float EngineFriction = 0.9;
 
-	UPROPERTY(EditAnywhere)
-	float BrakeForce = 10.0f;
-
 private:
 	float _CurrentTurnAngle = 0.0f;
 	float _TargetTurnAngle = 0.0f;
@@ -190,6 +190,7 @@ private:
 	void ApplyLateralForces(TObjectPtr<UWheelSceneComponent> Wheel, float DeltaTime) const;
 	//void GetForceAtWheels();
 	void UpdateCurrentEngineRPM(float DeltaTime);
+	void UpdateCurrentWheelVelocity(TObjectPtr<UWheelSceneComponent> Wheel, float DeltaTime);
 	void ApplyAccelerationForcesAtWheel(TObjectPtr<UWheelSceneComponent> Wheel);
 	float GetTorqueAtRPM(float RPM) const;
 	void SetCurrentRPM(float RPM);

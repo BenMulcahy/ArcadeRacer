@@ -163,6 +163,17 @@ void AArcadeCarPawn::UpdateCurrentEngineRPM(float DeltaTime)
 #endif
 }
 
+void AArcadeCarPawn::UpdateCurrentWheelVelocity(TObjectPtr<UWheelSceneComponent> Wheel, float DeltaTime)
+{
+	float angleVel = FVector::DotProduct(VehiclePhysicsComponent->GetPhysicsLinearVelocityAtPoint(Wheel->GetComponentLocation()) / Wheel->WheelRadius,Wheel->GetForwardVector());
+	Wheel->WheelAngularVelocity = angleVel;
+	
+	#if WITH_EDITOR
+	if (GEngine && bShowDebug) GEngine->AddOnScreenDebugMessage((uint64)Wheel->GetUniqueID(),-1, FColor::Green,FString::Printf(TEXT("Wheel Velocity %f at wheel %s"), Wheel->GetWheelAngularVelocity() , *Wheel.GetName()));
+	#endif
+}
+
+
 float AArcadeCarPawn::GetVehicleCurrentSpeed() const
 {
 	return FVector::DotProduct(VehiclePhysicsComponent->GetForwardVector(), VehiclePhysicsComponent->GetComponentVelocity());
@@ -230,9 +241,11 @@ void AArcadeCarPawn::AsyncPhysicsTickActor(float DeltaTime, float SimTime)
 
 			//Calculate Sliding and turning forces
 			ApplyLateralForces(currentWheel, DeltaTime);
-
+			
 			//Force At wheel * wheel rad = force?
 			ApplyAccelerationForcesAtWheel(currentWheel);
+
+			UpdateCurrentWheelVelocity(currentWheel, DeltaTime);
 		}
 	}
 }

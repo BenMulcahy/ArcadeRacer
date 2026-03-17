@@ -19,3 +19,8 @@ FVector UWheelSceneComponent::GetWheelMeshLocation()
 	return WheelMeshTargetLocation;
 }
 
+float UWheelSceneComponent::GetWheelAngularVelocity()
+{
+	return WheelAngularVelocity;
+}
+
