@@ -165,11 +165,11 @@ void AArcadeCarPawn::UpdateCurrentEngineRPM(float DeltaTime)
 
 void AArcadeCarPawn::UpdateCurrentWheelVelocity(TObjectPtr<UWheelSceneComponent> Wheel, float DeltaTime)
 {
-	float angleVel = FVector::DotProduct(VehiclePhysicsComponent->GetPhysicsLinearVelocityAtPoint(Wheel->GetComponentLocation()) / Wheel->WheelRadius,Wheel->GetForwardVector());
-	Wheel->WheelAngularVelocity = angleVel;
-	
+	Wheel->WheelAngularVelocity  = FVector::DotProduct(VehiclePhysicsComponent->GetPhysicsLinearVelocityAtPoint(Wheel->GetComponentLocation()), Wheel->GetForwardVector()) / Wheel->WheelRadius;
+	Wheel->WheelRPM = Wheel->GetWheelAngularVelocity() * (60 / (2 * UE_PI));
+
 	#if WITH_EDITOR
-	if (GEngine && bShowDebug) GEngine->AddOnScreenDebugMessage((uint64)Wheel->GetUniqueID(),-1, FColor::Green,FString::Printf(TEXT("Wheel Velocity %f at wheel %s"), Wheel->GetWheelAngularVelocity() , *Wheel.GetName()));
+	if (GEngine && bShowDebug) GEngine->AddOnScreenDebugMessage((uint64)Wheel->GetUniqueID(),-1, FColor::Green,FString::Printf(TEXT("Wheel Velocity %f | Wheel RPM: %f at wheel %s"), Wheel->GetWheelAngularVelocity() ,Wheel->WheelRPM, *Wheel.GetName()));
 	#endif
 }
 

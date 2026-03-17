@@ -40,7 +40,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float TyreMass = 9.0;
 	
+	///Rads/S
 	float WheelAngularVelocity;
+	float WheelRPM;
 	
 	//TODO: Make setters and getters and private these
 	float SuspensionForce = 0.0f;
@@ -59,6 +61,7 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	virtual float GetWheelAngularVelocity();
+	float GetWheelRPM();
 };
 
 		
