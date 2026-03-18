@@ -80,6 +80,13 @@ struct FVehicleData
 	
 	UPROPERTY(EditAnywhere)
 	float BrakeForce = 10.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Vehicle Data | Engine")
+	float EngineBrakingScalar = 1.0f;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Vehicle Data | Engine")
+	float EngineFriction = 0.9f;
+
 };
 
 UCLASS()
@@ -118,7 +125,7 @@ protected:
 
 	//Wheels
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Vehicle Data | Wheels")
-	TObjectPtr<UWheelSceneComponent> Fl_Wheel;
+	TObjectPtr<UWheelSceneComponent> FL_Wheel;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Vehicle Data | Wheels")
 	TObjectPtr<UWheelSceneComponent>  FR_Wheel;
@@ -135,23 +142,23 @@ protected:
 	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "Vehicle Data | Gearing")
 	TArray<FGear> GearsArray;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Vehicle Data | Engine")
-	float EngineFriction = 0.9;
-
 private:
 	float _CurrentTurnAngle = 0.0f;
 	float _TargetTurnAngle = 0.0f;
 	float _CurrentVehicleSpeed = 0.0f;
 	float _SpeedPercentile = 0.0f;
+	float _wRPM = 0.0f;
 	
 	//0-1 value of where accel 'pedal' is
 	float _Throttle = 0.0f;
 	//where brake 'pedal' is
 	float _BrakePedalPosition = 0.0f;
 	
-	float _CurrentRPM = 0.0f;
-	float _CurrentTorque = 0.0f;
+	float _CurrentEngineRPM = 0.0f;
+	float _CurrentTorqueAtEngine = 0.0f;
+	float _CurrentTorqueAtWheels = 0.0f;
 	int16 _CurrentGearNumber;
+	float _AverageWheelRPM;
 	
 //Functions
 public:	
@@ -160,7 +167,7 @@ public:
 	
 	//Async Tick
 	virtual void AsyncPhysicsTickActor(float DeltaTime, float SimTime) override;
-	
+
 	void SetTargetWheelAngle(float turnVal);
 	void UpdateWheelAngle(float DeltaTime);
 	void SetAccelPedalPosition(float pedalVal);
@@ -189,9 +196,10 @@ private:
 	void ApplySuspensionForce(TObjectPtr<UWheelSceneComponent> Wheel) const;
 	void ApplyLateralForces(TObjectPtr<UWheelSceneComponent> Wheel, float DeltaTime) const;
 	//void GetForceAtWheels();
-	void UpdateCurrentEngineRPM(float DeltaTime);
-	void UpdateCurrentWheelVelocity(TObjectPtr<UWheelSceneComponent> Wheel);
+	void UpdateCurrentWheelRotationalValues(TObjectPtr<UWheelSceneComponent> Wheel);
 	void ApplyAccelerationForcesAtWheel(TObjectPtr<UWheelSceneComponent> Wheel);
 	float GetTorqueAtRPM(float RPM) const;
 	void SetCurrentRPM(float RPM);
+	void CalculateRPMActual(float DeltaTime);
+	void Calculatelongitudinalforces();
 };

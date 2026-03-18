@@ -39,6 +39,11 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float TyreMass = 9.0;
+
+	/*
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<UStaticMeshComponent> WheelMesh;
+	*/
 	
 	///Rads/S
 	float WheelAngularVelocity;
@@ -62,6 +67,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	virtual float GetWheelAngularVelocity();
 	float GetWheelRPM();
+
+protected:
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 };
 
 		
