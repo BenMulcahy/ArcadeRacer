@@ -148,6 +148,16 @@ void AArcadeCarPawn::UpdateWheelAngle(float DeltaTime)
 	FR_Wheel->SetRelativeRotation(FRotator(0,_CurrentTurnAngle,0));
 }
 
+void AArcadeCarPawn::UpdateCurrentWheelVelocity(TObjectPtr<UWheelSceneComponent> Wheel)
+{
+	Wheel->WheelAngularVelocity  = FVector::DotProduct(VehiclePhysicsComponent->GetPhysicsLinearVelocityAtPoint(Wheel->GetComponentLocation()), Wheel->GetForwardVector()) / Wheel->WheelRadius;
+	Wheel->WheelRPM = Wheel->GetWheelAngularVelocity() * (60 / (2 * UE_PI));
+
+#if WITH_EDITOR
+	if (GEngine && bShowDebug) GEngine->AddOnScreenDebugMessage((uint64)Wheel->GetUniqueID(),-1, FColor::Green,FString::Printf(TEXT("Wheel Velocity %f | Wheel RPM: %f at wheel %s"), Wheel->GetWheelAngularVelocity() ,Wheel->WheelRPM, *Wheel.GetName()));
+#endif
+}
+
 void AArcadeCarPawn::UpdateCurrentEngineRPM(float DeltaTime)
 {
 	//Calculate RPM differential
@@ -161,16 +171,6 @@ void AArcadeCarPawn::UpdateCurrentEngineRPM(float DeltaTime)
 #if WITH_EDITOR
 	if (GEngine) GEngine->AddOnScreenDebugMessage(213123, -1,FColor::Green, FString::Printf(TEXT("Current RPM: %f Current Torque: %f Current Gear: %d"), _CurrentRPM, GetTorqueAtRPM(_CurrentRPM), _CurrentGearNumber));
 #endif
-}
-
-void AArcadeCarPawn::UpdateCurrentWheelVelocity(TObjectPtr<UWheelSceneComponent> Wheel, float DeltaTime)
-{
-	Wheel->WheelAngularVelocity  = FVector::DotProduct(VehiclePhysicsComponent->GetPhysicsLinearVelocityAtPoint(Wheel->GetComponentLocation()), Wheel->GetForwardVector()) / Wheel->WheelRadius;
-	Wheel->WheelRPM = Wheel->GetWheelAngularVelocity() * (60 / (2 * UE_PI));
-
-	#if WITH_EDITOR
-	if (GEngine && bShowDebug) GEngine->AddOnScreenDebugMessage((uint64)Wheel->GetUniqueID(),-1, FColor::Green,FString::Printf(TEXT("Wheel Velocity %f | Wheel RPM: %f at wheel %s"), Wheel->GetWheelAngularVelocity() ,Wheel->WheelRPM, *Wheel.GetName()));
-	#endif
 }
 
 

@@ -190,7 +190,7 @@ private:
 	void ApplyLateralForces(TObjectPtr<UWheelSceneComponent> Wheel, float DeltaTime) const;
 	//void GetForceAtWheels();
 	void UpdateCurrentEngineRPM(float DeltaTime);
-	void UpdateCurrentWheelVelocity(TObjectPtr<UWheelSceneComponent> Wheel, float DeltaTime);
+	void UpdateCurrentWheelVelocity(TObjectPtr<UWheelSceneComponent> Wheel);
 	void ApplyAccelerationForcesAtWheel(TObjectPtr<UWheelSceneComponent> Wheel);
 	float GetTorqueAtRPM(float RPM) const;
 	void SetCurrentRPM(float RPM);

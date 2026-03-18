@@ -8,11 +8,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b7e25c48-bbe6-44f2-8ebe-7227057e345f" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/.idea.ArcadeRacer.dir/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.ArcadeRacer.dir/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.ArcadeRacer.dir/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/ArcadeRacer/Private/ArcadeCarPawn.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/ArcadeRacer/Private/ArcadeCarPawn.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/ArcadeRacer/Private/WheelSceneComponent.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/ArcadeRacer/Private/WheelSceneComponent.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/ArcadeRacer/Public/WheelSceneComponent.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/ArcadeRacer/Public/WheelSceneComponent.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/ArcadeRacer/Public/ArcadeCarPawn.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/ArcadeRacer/Public/ArcadeCarPawn.h" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -166,7 +164,7 @@
       <workItem from="1773498791111" duration="8306000" />
       <workItem from="1773668514157" duration="194000" />
       <workItem from="1773673305686" duration="53000" />
-      <workItem from="1773776751257" duration="2416000" />
+      <workItem from="1773776751257" duration="2531000" />
     </task>
     <servers />
   </component>
