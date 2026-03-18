@@ -80,10 +80,13 @@ struct FVehicleData
 	float BrakeForce = 10.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Vehicle Data | Engine")
-	float EngineBrakingScalar = 1.0f;
+	float TransmissionCouplingScalar = 1.0f;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "VehicleData | Engine")
+	float EngineIntertia = 0.4f;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Vehicle Data | Engine")
-	float EngineFriction = 0.9f;
+	float EngineDrag = 0.9f;
 	
 	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "Vehicle Data | Gearing")
 	TMap<FString, FGear> Gears = {
@@ -97,7 +100,7 @@ struct FVehicleData
 	};
 
 	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "VehicleData | Gearing")
-	float GearDifferential = 3.5f;
+	float GearDifferential = 4.0f;
 };
 
 UCLASS()
@@ -154,8 +157,6 @@ private:
 	float _CurrentTurnAngle = 0.0f;
 	float _TargetTurnAngle = 0.0f;
 	float _CurrentVehicleSpeed = 0.0f;
-	float _SpeedPercentile = 0.0f;
-	float _wRPM = 0.0f;
 	
 	//0-1 value of where accel 'pedal' is
 	float _Throttle = 0.0f;
@@ -163,9 +164,9 @@ private:
 	float _BrakePedalPosition = 0.0f;
 	
 	float _CurrentEngineRPM = 0.0f;
-	float _CurrentTorqueAtEngine = 0.0f;
-	float _CurrentTorqueAtWheels = 0.0f;
+	float _CurrentEngineTorque = 0.0f;
 	FString _CurrentGear = "neutral";
+	
 	float _AverageDrivenWheelsRPM;
 	
 //Functions
@@ -204,7 +205,6 @@ private:
 	void UpdateCurrentWheelRotationalValues(TObjectPtr<UWheelSceneComponent> Wheel) const;
 	void CalculateDriveTrain(float DeltaTime);
 	float GetEngineTorqueAtRPM(float RPM);
-	float GetAxleTorqueAtRPM(float RPM);
 	void ApplyLongitudinalForces(TObjectPtr<UWheelSceneComponent> Wheel);
 
 	//void GetForceAtWheels();

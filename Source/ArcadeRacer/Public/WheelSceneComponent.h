@@ -48,6 +48,7 @@ public:
 	///Rads/S
 	float WheelAngularVelocity;
 	float WheelRPM;
+	float AxleRPM;
 	
 	//TODO: Make setters and getters and private these
 	float SuspensionForce = 0.0f;
