@@ -83,7 +83,7 @@ void AArcadeCarPawn::OnConstruction(const FTransform &Transform)
 	{
 		if (WheelsArray[wheel] != nullptr)
 		{
-			TObjectPtr<UWheelSceneComponent> currentWheel = WheelsArray[wheel];
+			const TObjectPtr<UWheelSceneComponent> currentWheel = WheelsArray[wheel];
 			currentWheel->WheelAnchorPoint = currentWheel->GetComponentLocation();
 			currentWheel->WheelAnchorPoint.Z += currentWheel->SuspensionRestDistance;
 			
@@ -96,18 +96,19 @@ void AArcadeCarPawn::OnConstruction(const FTransform &Transform)
 
 		}
 	}
-
-	for (int gear = 0; gear < GearsArray.Num(); ++gear)
+	
+	for (TPair<FString, FGear>& gear : VehicleData.Gears)
 	{
-		if(GearsArray[gear].GearUpRPM > VehicleData.MaxRPM) GearsArray[gear].GearUpRPM = VehicleData.MaxRPM; //Ensure cant gear up past gear RPM
+		if(gear.Value.GearUpRPM > VehicleData.MaxRPM) gear.Value.GearUpRPM = VehicleData.MaxRPM;
 	}
 }
 
 void AArcadeCarPawn::BeginPlay()
 {
 	Super::BeginPlay();
+	SetCurrentGear("1");
 	UE_LOG(LogTemp,Warning,TEXT("Gear Ratio: %f"), GetCurrentGearRatio());
-	SetCurrentRPM(VehicleData.IdleRPM);
+	_CurrentEngineRPM = VehicleData.IdleRPM;
 }
 	
 // Called every frame
@@ -117,7 +118,7 @@ void AArcadeCarPawn::Tick(float DeltaTime)
 	
 	UpdateWheelAngle(DeltaTime);
 	
-	_CurrentTorqueAtEngine = GetTorqueAtRPM(_CurrentEngineRPM);
+	//_CurrentTorqueAtEngine = GetTorqueAtRPM(_CurrentEngineRPM);
     _CurrentVehicleSpeed = GetVehicleCurrentSpeed();
 	
 #if WITH_EDITOR
@@ -131,7 +132,7 @@ void AArcadeCarPawn::Tick(float DeltaTime)
 		}
 		if (GEngine)
 		{
-			GEngine->AddOnScreenDebugMessage(1231,-1.0f, FColor::Green, FString::Printf(TEXT("Current Speed: %f WheelRPM Avg: %f"), _CurrentVehicleSpeed, _AverageWheelRPM));
+			GEngine->AddOnScreenDebugMessage(1231,1.0f, FColor::Yellow, FString::Printf(TEXT("Current Speed: %f | Current Gear: %s Gear Ratio: %f | WheelRPM: %f | EngineRPM: %f"), _CurrentVehicleSpeed, *_CurrentGear, VehicleData.Gears[_CurrentGear].GearRatio, _AverageDrivenWheelsRPM, _CurrentEngineRPM));
 		}
 	}
 #endif
@@ -150,64 +151,21 @@ void AArcadeCarPawn::UpdateWheelAngle(float DeltaTime)
 	FR_Wheel->SetRelativeRotation(FRotator(0,_CurrentTurnAngle,0));
 }
 
-void AArcadeCarPawn::UpdateCurrentWheelRotationalValues(TObjectPtr<UWheelSceneComponent> Wheel)
-{
-	Wheel->WheelAngularVelocity  = FVector::DotProduct(VehiclePhysicsComponent->GetPhysicsLinearVelocityAtPoint(Wheel->GetComponentLocation()), Wheel->GetForwardVector()) / Wheel->WheelRadius;
-	Wheel->WheelRPM = Wheel->GetWheelAngularVelocity() * (60 / (2 * UE_PI));
-
-	//Calculate AverageWheelRPM
-	switch (VehicleData.VehicleDriveType) {
-	case EVehicleDriveType::AllWheelDrive:
-		_AverageWheelRPM = (FL_Wheel->WheelRPM + FR_Wheel->WheelRPM + RL_Wheel->WheelRPM + RR_Wheel->WheelRPM) / 4;
-		break;
-	case EVehicleDriveType::RearWheelDrive:
-		_AverageWheelRPM = (RL_Wheel->WheelRPM + RR_Wheel->WheelRPM) / 2;
-		break;
-	case EVehicleDriveType::FrontWheelDrive:
-		_AverageWheelRPM = (FL_Wheel->WheelRPM + FR_Wheel->WheelRPM) / 2;
-		break;
-	default: ;
-	}
-
-#if WITH_EDITOR
-	if (GEngine && bShowDebug) GEngine->AddOnScreenDebugMessage((uint64)Wheel->GetUniqueID(),-1, FColor::Green,FString::Printf(TEXT("Wheel Velocity %f | Wheel RPM: %f at wheel %s"), Wheel->GetWheelAngularVelocity() ,Wheel->WheelRPM, *Wheel.GetName()));
-#endif
-}
-
 float AArcadeCarPawn::GetVehicleCurrentSpeed() const
 {
-	return FVector::DotProduct(VehiclePhysicsComponent->GetForwardVector(), VehiclePhysicsComponent->GetComponentVelocity());
+	return FVector::DotProduct(VehiclePhysicsComponent->GetForwardVector(), VehiclePhysicsComponent->GetComponentVelocity()) / 10;
 }
 
 //GEARING
+void AArcadeCarPawn::SetCurrentGear(FString gearName)
+{
+	if(VehicleData.Gears.Contains(gearName)) _CurrentGear = gearName;
+	else UE_LOG(LogTemp,Warning,TEXT("Invalid Gear Given!"));
+}
+
 float AArcadeCarPawn::GetCurrentGearRatio() const
 {
-	return GearsArray[_CurrentGearNumber].GearRatio / 1;
-}
-
-void AArcadeCarPawn::GearUp()
-{
-	if(_CurrentGearNumber < GearsArray.Num()-1) _CurrentGearNumber++;
-	//SetCurrentRPM(GearsArray[_CurrentGearNumber].GearDownRPM);
-}
-
-void AArcadeCarPawn::GearDown()
-{
-	if(_CurrentGearNumber > 0) _CurrentGearNumber--; //TODO: REVERSE?
-	SetCurrentRPM(GearsArray[_CurrentGearNumber].GearUpRPM);
-}
-
-//RPM
-float AArcadeCarPawn::GetTorqueAtRPM(float RPM) const
-{
-	const float RPMPercentile = FMath::Clamp(FMath::Abs(RPM / VehicleData.MaxRPM), 0.0f, 1.0f);
-	if (VehicleData.TorqueCurve != nullptr) return VehicleData.TorqueCurve->GetFloatValue(RPMPercentile) * VehicleData.MaxTorque;
-	else return 0.0f;
-}
-
-void AArcadeCarPawn::SetCurrentRPM(float RPM)
-{
-	_CurrentEngineRPM = RPM;
+	return VehicleData.Gears[_CurrentGear].GearRatio;
 }
 
 void AArcadeCarPawn::SetAccelPedalPosition(float pedalVal)
@@ -221,114 +179,54 @@ void AArcadeCarPawn::SetBrakePedalPosition(float pedalVal)
 }
 #pragma endregion
 
+
+//////PHYSICS////
 #pragma region //Physics
+
 void AArcadeCarPawn::AsyncPhysicsTickActor(float DeltaTime, float SimTime)
-{
+{	
 	Super::AsyncPhysicsTickActor(DeltaTime, SimTime);
 	VehiclePhysicsComponent->AsyncPhysicsTickComponent(DeltaTime, SimTime);
 	ReceiveAsyncPhysicsTick(DeltaTime, SimTime);
 
+	CalculateDriveTrain(DeltaTime);
+	
 	//Update Wheel Components
 	for (int Wheel = 0; Wheel < WheelsArray.Num(); ++Wheel)
-	{
-		//Calculate Engine Forces
-		CalculateRPMActual(DeltaTime);
-		
+	{		
 		TObjectPtr<UWheelSceneComponent> currentWheel = WheelsArray[Wheel];
 		if (currentWheel != nullptr)
 		{
-			//Calculate Suspension Forces
+			//UPDATE WHEEL VALUES
+			UpdateCurrentWheelRotationalValues(currentWheel);
+			//Apply Long forces
+			ApplyLongitudinalForces(currentWheel);
+			
+			//Suspension Forces
 			ApplySuspensionForce(currentWheel);
 
-			//Calculate Sliding and turning forces
+			//Sliding and turning forces
 			ApplyLateralForces(currentWheel, DeltaTime);
-			
-			//Force At wheel * wheel rad = force?
-			ApplyAccelerationForcesAtWheel(currentWheel);
 		}
 	}
-}
 
-void AArcadeCarPawn::CalculateRPMActual(float DeltaTime)
-{
-	//Engine RPM
-	float eTargetRPM = VehicleData.IdleRPM + ((VehicleData.MaxRPM - VehicleData.IdleRPM) / (1) * (_Throttle));
-	float eWheelSync = VehicleData.EngineBrakingScalar * ((_AverageWheelRPM / GetCurrentGearRatio()) - _CurrentEngineRPM);
-	float eFriction = VehicleData.EngineFriction * _CurrentEngineRPM;
-	
-	float eRPMDiff = (eTargetRPM + eWheelSync - eFriction) * DeltaTime;
-	_CurrentEngineRPM += eRPMDiff;
-	//_CurrentEngineRPM = FMath::Clamp(_CurrentEngineRPM, VehicleData.IdleRPM, VehicleData.MaxRPM);
-	
-	//WheelRPM???
-	float wTargetRPM = eTargetRPM * GetCurrentGearRatio();
-	float wEngineSync = wTargetRPM - _AverageWheelRPM;
-	float wRPMDiff = (wEngineSync) * DeltaTime;
-	//float wRPMDiff = (wEngineSync - VehicleData.BrakeForce * _BrakePedalPosition - 1.0f * _AverageWheelRPM) * DeltaTime; //-3000
-	_wRPM += wRPMDiff;
-	
-	for (int Wheel = 0; Wheel < WheelsArray.Num(); ++Wheel)
-	{
-		UWheelSceneComponent* currentWheel = WheelsArray[Wheel];
-		UpdateCurrentWheelRotationalValues(currentWheel);
-	}
-
-#if WITH_EDITOR
-	if(GEngine) GEngine->AddOnScreenDebugMessage(123091873, -1,FColor::Green,FString::Printf(TEXT("eTargetRPM: %f | wTargetRPM: %f | wRPMDiff: %f | wRPM: %f"),eTargetRPM, wTargetRPM,wRPMDiff, _wRPM));
-	if (GEngine) GEngine->AddOnScreenDebugMessage(213123, -1,FColor::Green, FString::Printf(TEXT("Current RPM: %f Current Torque: %f Current Gear: %d"), _CurrentEngineRPM, GetTorqueAtRPM(_CurrentEngineRPM), _CurrentGearNumber));
-#endif
-}
-
-///ACCELERATION
-void AArcadeCarPawn::Calculatelongitudinalforces()
-{
-	float _TargetWheelRPM = _CurrentEngineRPM * GetCurrentGearRatio();
-
-	//Spring towards targetRPM
-}
-
-
-void AArcadeCarPawn::ApplyAccelerationForcesAtWheel(TObjectPtr<UWheelSceneComponent> Wheel)
-{
-	FVector force = FVector::ZeroVector;
-	//_CurrentTorqueAtWheels = GetTorqueAtRPM(_wRPM);
-	_CurrentTorqueAtWheels = _CurrentTorqueAtEngine * GetCurrentGearRatio();
-	
-	
-	//if (_Throttle > 0)
-	{
-		switch (VehicleData.VehicleDriveType)
-		{
-		case EVehicleDriveType::FrontWheelDrive:
-			if (Wheel == FL_Wheel || Wheel == FR_Wheel)
-			{
-				//force = Wheel->GetForwardVector() * (_CurrentTorqueAtWheels / 2) * Wheel->WheelRadius * GetCurrentGearRatio();
-				force = ((_CurrentTorqueAtWheels / Wheel->WheelRadius) / 2) * Wheel->GetForwardVector();
-				UE_LOG(LogTemp,Warning,TEXT("Forcee at Wheels: %s"), *force.ToString());
-				VehiclePhysicsComponent->AddForceAtLocation(force, Wheel->GetComponentLocation());
-			}
-			break;
-		case EVehicleDriveType::RearWheelDrive:
-			if (Wheel == RL_Wheel || Wheel == RR_Wheel)
-			{
-				/*
-				force = Wheel->GetForwardVector() * (_CurrentTorqueAtWheels / 2) * Wheel->WheelRadius * GetCurrentGearRatio();
-				VehiclePhysicsComponent->AddForceAtLocation(force, Wheel->GetComponentLocation());
-				*/
-			}
-			break;
-		case EVehicleDriveType::AllWheelDrive:
-			/*
-			force = Wheel->GetForwardVector() * (_CurrentTorqueAtWheels / 4) * Wheel->WheelRadius * GetCurrentGearRatio();
-			VehiclePhysicsComponent->AddForceAtLocation(force, Wheel->GetComponentLocation());
-			*/
-			break;
-		}
-		if(force != FVector::Zero()) DrawDebugDirectionalArrow(GetWorld(),Wheel->GetComponentLocation(),Wheel->GetComponentLocation() + force,5.0f,FColor::Blue);
+	//Calculate AverageWheelRPM
+	switch (VehicleData.VehicleDriveType) {
+	case EVehicleDriveType::AllWheelDrive:
+		_AverageDrivenWheelsRPM = (FL_Wheel->WheelRPM + FR_Wheel->WheelRPM + RL_Wheel->WheelRPM + RR_Wheel->WheelRPM) / 4;
+		break;
+	case EVehicleDriveType::RearWheelDrive:
+		_AverageDrivenWheelsRPM = (RL_Wheel->WheelRPM + RR_Wheel->WheelRPM) / 2;
+		break;
+	case EVehicleDriveType::FrontWheelDrive:
+		_AverageDrivenWheelsRPM = (FL_Wheel->WheelRPM + FR_Wheel->WheelRPM) / 2;
+		break;
+	default: ;
 	}
 }
 
-//SUSPENSION
+
+#pragma region //SUSPENSION
 void AArcadeCarPawn::ApplySuspensionForce(TObjectPtr<UWheelSceneComponent> Wheel) const
 {
 	FVector force = FVector::ZeroVector;
@@ -389,8 +287,9 @@ void AArcadeCarPawn::ApplySuspensionForce(TObjectPtr<UWheelSceneComponent> Wheel
 		Wheel->bIsGrounded = false;
 	}
 }
+#pragma endregion 
 
-///STEERING AND SLIDING
+#pragma region ///STEERING AND SLIDING
 void AArcadeCarPawn::ApplyLateralForces(TObjectPtr<UWheelSceneComponent> Wheel, float DeltaTime) const
 {
 	FVector force = FVector::ZeroVector;
@@ -409,10 +308,157 @@ void AArcadeCarPawn::ApplyLateralForces(TObjectPtr<UWheelSceneComponent> Wheel, 
 		VehiclePhysicsComponent->AddForceAtLocation(force, Wheel->GetComponentLocation());
 	}
 }
-
-//Graveyard
-#pragma region
 #pragma endregion
 
+#pragma region //Longitudinal Force
+
+//UPDATE WHEEL ANGULAR VELOCITY AND RPM VALUES
+void AArcadeCarPawn::UpdateCurrentWheelRotationalValues(TObjectPtr<UWheelSceneComponent> Wheel) const
+{
+	Wheel->WheelAngularVelocity  = FVector::DotProduct(VehiclePhysicsComponent->GetPhysicsLinearVelocityAtPoint(Wheel->GetComponentLocation()), Wheel->GetForwardVector()) / Wheel->WheelRadius;
+	Wheel->WheelRPM = Wheel->GetWheelAngularVelocity() * (60 / (2 * UE_PI));
+}
+
+float AArcadeCarPawn::GetAxleTorqueAtRPM(float RPM)
+{
+	const float T = VehicleData.TorqueCurve->GetFloatValue(FMath::Clamp(FMath::Abs(RPM / VehicleData.MaxRPM), 0.0f, 1.0f)) * VehicleData.MaxTorque * GetCurrentGearRatio();
+	UE_LOG(LogTemp, Warning,TEXT("Axle Torque: %f"), T);
+	return T;
+}
+
+float AArcadeCarPawn::GetEngineTorqueAtRPM(float RPM)
+{
+	const float T = VehicleData.TorqueCurve->GetFloatValue(FMath::Clamp(FMath::Abs(RPM / VehicleData.MaxRPM), 0.0f, 1.0f)) * VehicleData.MaxTorque;
+	return T ;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+void AArcadeCarPawn::CalculateDriveTrain(float DeltaTime)
+{
+	const float expectedAxleRPM = _CurrentEngineRPM / GetCurrentGearRatio() / VehicleData.GearDifferential;
+	const float expectedAxleTorque = GetEngineTorqueAtRPM(_CurrentEngineRPM) * GetCurrentGearRatio() * VehicleData.GearDifferential;
+	const float expectedWheelLinearForce = (GetEngineTorqueAtRPM(_CurrentEngineRPM) * GetCurrentGearRatio()) / 0.34; //Hard value from wheel rad
+	
+	if(GEngine) GEngine->AddOnScreenDebugMessage(34124,-1, FColor::Green, FString::Printf(TEXT("Expected; RPM: %f  Torque: %f LinearForce: %f"),expectedAxleRPM,expectedAxleTorque,expectedWheelLinearForce));
+	
+	_CurrentEngineRPM = VehicleData.IdleRPM + ((VehicleData.MaxRPM - VehicleData.IdleRPM) / (1) * (_Throttle));
+
+	
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+void AArcadeCarPawn::ApplyLongitudinalForces(TObjectPtr<UWheelSceneComponent> Wheel)
+{
+	if(Wheel == nullptr) return;
+	FVector force = FVector::ZeroVector;
+
+	if(_Throttle > 0)
+	{		
+		switch (VehicleData.VehicleDriveType) {
+		case EVehicleDriveType::FrontWheelDrive:
+			if(Wheel == FL_Wheel || Wheel == FR_Wheel)
+			{
+				force = ((GetAxleTorqueAtRPM(_CurrentEngineRPM) / Wheel->WheelRadius) / 2) * Wheel->GetForwardVector();
+				force *= 100;
+				VehiclePhysicsComponent->AddForceAtLocation(force, Wheel->GetComponentLocation());
+			}
+			break;
+		case EVehicleDriveType::RearWheelDrive:
+			if(Wheel == RL_Wheel || Wheel == RR_Wheel)
+			{
+				force = ((GetAxleTorqueAtRPM(_CurrentEngineRPM) / Wheel->WheelRadius) / 2) * Wheel->GetForwardVector();
+				force *= 100;
+				VehiclePhysicsComponent->AddForceAtLocation(force, Wheel->GetComponentLocation());
+			}
+			break;
+		case EVehicleDriveType::AllWheelDrive:
+			force = ((GetAxleTorqueAtRPM(_CurrentEngineRPM) / Wheel->WheelRadius) / 4) * Wheel->GetForwardVector();
+			force *= 100;
+			VehiclePhysicsComponent->AddForceAtLocation(force, Wheel->GetComponentLocation());
+			break;
+		default: ;
+		}
+	}
+}
+
 #pragma endregion
+#pragma endregion //End Physics Region
+
+
+// float AArcadeCarPawn::GetTorqueAtRPM(float RPM) const
+// {
+// 	const float RPMPercentile = FMath::Clamp(FMath::Abs(RPM / VehicleData.MaxRPM), 0.0f, 1.0f);
+// 	if (VehicleData.TorqueCurve != nullptr) return VehicleData.TorqueCurve->GetFloatValue(RPMPercentile) * VehicleData.MaxTorque;
+// 	else return 0.0f;
+// }
+
+
+// void AArcadeCarPawn::CalculateRPMActual(float DeltaTime)
+// {
+// 	//Engine RPM
+// 	float eTargetRPM = VehicleData.IdleRPM + ((VehicleData.MaxRPM - VehicleData.IdleRPM) / (1) * (_Throttle));
+// 	float eWheelSync = VehicleData.EngineBrakingScalar * ((_AverageWheelRPM / GetCurrentGearRatio()) - _CurrentEngineRPM);
+// 	float eFriction = VehicleData.EngineFriction * _CurrentEngineRPM;
+// 	
+// 	float eRPMDiff = (eTargetRPM + eWheelSync - eFriction) * DeltaTime;
+// 	_CurrentEngineRPM += eRPMDiff;
+// 	//_CurrentEngineRPM = FMath::Clamp(_CurrentEngineRPM, VehicleData.IdleRPM, VehicleData.MaxRPM);
+// 	
+// 	//WheelRPM???
+// 	float wTargetRPM = eTargetRPM * GetCurrentGearRatio();
+// 	float wEngineSync = wTargetRPM - _AverageWheelRPM;
+// 	float wRPMDiff = (wEngineSync) * DeltaTime;
+// 	//float wRPMDiff = (wEngineSync - VehicleData.BrakeForce * _BrakePedalPosition - 1.0f * _AverageWheelRPM) * DeltaTime; //-3000
+// 	_wRPM += wRPMDiff;
+// 	
+// 	for (int Wheel = 0; Wheel < WheelsArray.Num(); ++Wheel)
+// 	{
+// 		UWheelSceneComponent* currentWheel = WheelsArray[Wheel];
+// 		UpdateCurrentWheelRotationalValues(currentWheel);
+// 	}
+//
+// #if WITH_EDITOR
+// 	if(GEngine) GEngine->AddOnScreenDebugMessage(123091873, -1,FColor::Green,FString::Printf(TEXT("eTargetRPM: %f | wTargetRPM: %f | wRPMDiff: %f | wRPM: %f"),eTargetRPM, wTargetRPM,wRPMDiff, _wRPM));
+// 	if (GEngine) GEngine->AddOnScreenDebugMessage(213123, -1,FColor::Green, FString::Printf(TEXT("Current RPM: %f Current Torque: %f Current Gear: %d"), _CurrentEngineRPM, GetTorqueAtRPM(_CurrentEngineRPM), _CurrentGearNumber));
+// #endif
+// }
 

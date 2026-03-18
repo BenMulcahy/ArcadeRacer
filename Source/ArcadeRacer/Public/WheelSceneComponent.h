@@ -17,7 +17,7 @@ public:
 	UWheelSceneComponent();
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float WheelRadius = 15.0f;
+	float WheelRadius = 34.0f;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float SuspensionRestDistance = 50.0f;

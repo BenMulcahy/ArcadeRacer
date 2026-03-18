@@ -23,7 +23,7 @@ USTRUCT(BlueprintType)
 struct FGear
 {
 	GENERATED_BODY()
-
+	
 	UPROPERTY(EditAnywhere,BlueprintReadOnly)
 	float GearRatio = 2.5;
 
@@ -34,6 +34,7 @@ struct FGear
 	int32 GearDownRPM = 0;
 };
 
+//VEHICLE DATA
 USTRUCT(BlueprintType)
 struct FVehicleData
 {
@@ -67,9 +68,6 @@ struct FVehicleData
 	TObjectPtr<UCurveFloat> TorqueCurve;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	float MaxPower = 200.0;
-	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	float MaxTorque = 180.0f;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
@@ -86,7 +84,20 @@ struct FVehicleData
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Vehicle Data | Engine")
 	float EngineFriction = 0.9f;
+	
+	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "Vehicle Data | Gearing")
+	TMap<FString, FGear> Gears = {
+		{"reverse", FGear(-2.9,7800,1200)},
+		{"neutral", FGear(0.0f, 0,0)},
+		{"1", FGear(2.5f,7800,1200)},
+		{"2", FGear(1.6f,7800,1200)},
+		{"3", FGear(1.1f,7800,1200)},
+		{"4", FGear(0.81f,7800,1200)},
+		{"5", FGear(0.6f,7800,1200)},
+	};
 
+	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "VehicleData | Gearing")
+	float GearDifferential = 3.5f;
 };
 
 UCLASS()
@@ -139,9 +150,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Vehicle Data | Wheels")
 	TArray<TObjectPtr<UWheelSceneComponent>> WheelsArray;
 
-	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "Vehicle Data | Gearing")
-	TArray<FGear> GearsArray;
-
 private:
 	float _CurrentTurnAngle = 0.0f;
 	float _TargetTurnAngle = 0.0f;
@@ -157,8 +165,8 @@ private:
 	float _CurrentEngineRPM = 0.0f;
 	float _CurrentTorqueAtEngine = 0.0f;
 	float _CurrentTorqueAtWheels = 0.0f;
-	int16 _CurrentGearNumber;
-	float _AverageWheelRPM;
+	FString _CurrentGear = "neutral";
+	float _AverageDrivenWheelsRPM;
 	
 //Functions
 public:	
@@ -180,26 +188,28 @@ protected:
 	
 	UFUNCTION()
 	float GetVehicleCurrentSpeed() const;
+
+	UFUNCTION()
+	void SetCurrentGear(FString gearName);
 	
 	UFUNCTION()
 	float GetCurrentGearRatio() const;
-
-	UFUNCTION()
-	void GearUp();
-
-	UFUNCTION()
-	void GearDown();
-
+	
 private:
 	///Calculates and applies suspension forces and positions wheel mesh. 
 	///Returns force applied to wheel
 	void ApplySuspensionForce(TObjectPtr<UWheelSceneComponent> Wheel) const;
 	void ApplyLateralForces(TObjectPtr<UWheelSceneComponent> Wheel, float DeltaTime) const;
+
+	void UpdateCurrentWheelRotationalValues(TObjectPtr<UWheelSceneComponent> Wheel) const;
+	void CalculateDriveTrain(float DeltaTime);
+	float GetEngineTorqueAtRPM(float RPM);
+	float GetAxleTorqueAtRPM(float RPM);
+	void ApplyLongitudinalForces(TObjectPtr<UWheelSceneComponent> Wheel);
+
 	//void GetForceAtWheels();
-	void UpdateCurrentWheelRotationalValues(TObjectPtr<UWheelSceneComponent> Wheel);
-	void ApplyAccelerationForcesAtWheel(TObjectPtr<UWheelSceneComponent> Wheel);
-	float GetTorqueAtRPM(float RPM) const;
-	void SetCurrentRPM(float RPM);
-	void CalculateRPMActual(float DeltaTime);
-	void Calculatelongitudinalforces();
+	//void ApplyAccelerationForcesAtWheel(TObjectPtr<UWheelSceneComponent> Wheel);
+	//float GetTorqueAtRPM(float RPM) const;
+	//void CalculateRPMActual(float DeltaTime);
+	//void Calculatelongitudinalforces();
 };
