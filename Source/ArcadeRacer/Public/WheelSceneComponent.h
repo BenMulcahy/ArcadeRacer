@@ -32,7 +32,19 @@ public:
 	float SuspensionDamping = 10.0f;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float TyreGrip = 0.6f;
+	float TyreLateralGrip = 0.6f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float TyreLongitudinalGrip = 0.8f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float peakSlip = 0.2f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float GripFalloff = 2.0f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float MaxTyreForce = 12000.0f;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float TyreRollingResistance = 0.2f;
@@ -53,20 +65,22 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float TyreMass = 9.0;
-
-	/*
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<UStaticMeshComponent> WheelMesh;
-	*/
+	float WheelInertia = 1.0f;
 	
 	///Rads/S
 	float WheelAngularVelocity;
 	float WheelRPM;
 	
+	float CurrentGrip = 1.0f;
+	float CurrentLongitudinalForce = 0.0f;
+	
 	//TODO: Make setters and getters and private these
 	float SuspensionForce = 0.0f;
 	FVector WheelAnchorPoint = FVector(0.0f, 0.0f, 0.0f);
 	bool bIsGrounded = false;
+
 	
 	private:
 	FVector WheelMeshTargetLocation;

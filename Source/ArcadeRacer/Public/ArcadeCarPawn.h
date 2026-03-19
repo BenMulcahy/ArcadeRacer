@@ -206,10 +206,12 @@ private:
 	void ApplySuspensionForce(TObjectPtr<UWheelSceneComponent> Wheel) const;
 	void ApplyLateralForces(TObjectPtr<UWheelSceneComponent> Wheel, float DeltaTime) const;
 
-	void UpdateCurrentWheelRotationalValues(TObjectPtr<UWheelSceneComponent> Wheel) const;
+	void UpdateCurrentWheelRotationalValues(TObjectPtr<UWheelSceneComponent> Wheel, float DeltaTime);
+	void CalculateWheelAngularVelocity(TObjectPtr<UWheelSceneComponent> Wheel, float DeltaTime);
 	void CalculateDriveTrain(float DeltaTime);
-	float GetEngineTorqueAtRPM(float RPM);
+	float GetEngineTorqueAtRPM(float RPM) const;
 	void ApplyLongitudinalForces(TObjectPtr<UWheelSceneComponent> Wheel);
+	float CalculateLongitudinalGrip(TObjectPtr<UWheelSceneComponent> Wheel);
 
 	//void GetForceAtWheels();
 	//void ApplyAccelerationForcesAtWheel(TObjectPtr<UWheelSceneComponent> Wheel);

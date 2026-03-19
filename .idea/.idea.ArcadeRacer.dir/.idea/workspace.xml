@@ -8,11 +8,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b7e25c48-bbe6-44f2-8ebe-7227057e345f" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/Content/Prototyping/TestCar_TyreGrip.uasset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.ArcadeRacer.dir/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.ArcadeRacer.dir/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/Prototyping/BP_TestCar.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Prototyping/BP_TestCar.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Prototyping/TestCar_TC.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Prototyping/TestCar_TC.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Prototyping/TestMap.umap" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Prototyping/TestMap.umap" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/ArcadeRacer/Private/ArcadeCarPawn.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/ArcadeRacer/Private/ArcadeCarPawn.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/ArcadeRacer/Public/ArcadeCarPawn.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/ArcadeRacer/Public/ArcadeCarPawn.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/ArcadeRacer/Public/WheelSceneComponent.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/ArcadeRacer/Public/WheelSceneComponent.h" afterDir="false" />
@@ -178,6 +175,7 @@
       <workItem from="1773868948616" duration="2527000" />
       <workItem from="1773915578124" duration="3115000" />
       <workItem from="1773918824132" duration="3555000" />
+      <workItem from="1773927593752" duration="9231000" />
     </task>
     <servers />
   </component>
