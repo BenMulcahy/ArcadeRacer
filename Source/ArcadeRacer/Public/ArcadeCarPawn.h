@@ -76,10 +76,10 @@ struct FVehicleData
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	int32 IdleRPM = 1200;
 	
-	UPROPERTY(EditAnywhere)
-	float BrakeForce = 10.0f;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	float ReturnToIdleStrength = 2.0f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Vehicle Data | Engine")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Vehicle Data | Engine")
 	float TransmissionCouplingScalar = 1.0f;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "VehicleData | Engine")
@@ -87,6 +87,9 @@ struct FVehicleData
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Vehicle Data | Engine")
 	float EngineDrag = 0.9f;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VehicleData | Engine")
+	float EngineForceMultiplier = 1.0f;
 	
 	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "Vehicle Data | Gearing")
 	TMap<FString, FGear> Gears = {
@@ -98,7 +101,7 @@ struct FVehicleData
 		{"4", FGear(0.81f,7800,1200)},
 		{"5", FGear(0.6f,7800,1200)},
 	};
-
+	
 	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "VehicleData | Gearing")
 	float GearDifferential = 4.0f;
 };
@@ -190,13 +193,14 @@ protected:
 	UFUNCTION()
 	float GetVehicleCurrentSpeed() const;
 
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	void SetCurrentGear(FString gearName);
 	
 	UFUNCTION()
 	float GetCurrentGearRatio() const;
-	
+
 private:
+
 	///Calculates and applies suspension forces and positions wheel mesh. 
 	///Returns force applied to wheel
 	void ApplySuspensionForce(TObjectPtr<UWheelSceneComponent> Wheel) const;

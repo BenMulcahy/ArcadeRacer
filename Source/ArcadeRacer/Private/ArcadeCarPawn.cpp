@@ -3,6 +3,9 @@
 
 #include "ArcadeCarPawn.h"
 
+#include "DynamicMesh/DynamicMeshOverlay.h"
+#include "Interfaces/IPluginManager.h"
+
 //TODO: Refactor - Body component?
 
 // Sets default values
@@ -39,7 +42,10 @@ AArcadeCarPawn::AArcadeCarPawn()
 	FR_Wheel->SetupAttachment(VehiclePhysicsComponent);
 	RL_Wheel->SetupAttachment(VehiclePhysicsComponent);
 	RR_Wheel->SetupAttachment(VehiclePhysicsComponent);
-
+	
+	//Tweak default brake bias
+	RL_Wheel->WheelBrakeStrength *= 0.4f;
+	RR_Wheel->WheelBrakeStrength *= 0.4f;
 
 #pragma region //Camera
 	/// CAMAERA SETUP ///
@@ -301,7 +307,8 @@ void AArcadeCarPawn::ApplyLateralForces(TObjectPtr<UWheelSceneComponent> Wheel, 
 	
 		//Get current wheel sliding velocity
 		const float slidingMagnitude = FVector::DotProduct(Wheel->GetRightVector(), wheelVelocity);
-		const float targetVelocity = -slidingMagnitude * Wheel->TyreGrip; //TODO: make tyreGrip query a grip curve based on slidingMagnitude
+		//const float targetVelocity = -slidingMagnitude * Wheel->TyreGripCurve->GetFloatValue(slidingMagnitude / 100); //TODO: make tyreGrip query a grip curve based on slidingMagnitude
+		const float targetVelocity = -slidingMagnitude * Wheel->TyreGrip;
 		const float targetForce = targetVelocity / DeltaTime;
 		force = Wheel->GetRightVector() * targetForce * (Wheel->TyreMass/10);
 	
@@ -330,50 +337,60 @@ void AArcadeCarPawn::CalculateDriveTrain(float DeltaTime)
 	//Engine RPM Delta
 	_CurrentEngineTorque = _Throttle * GetEngineTorqueAtRPM(_CurrentEngineRPM);
 	
+	if (_CurrentEngineRPM < VehicleData.IdleRPM)
+	{
+		const float idleT = (VehicleData.IdleRPM - _CurrentEngineTorque) * VehicleData.ReturnToIdleStrength;
+		_CurrentEngineTorque += idleT;
+	}
+	
 	const float rpmDelta = (_CurrentEngineTorque / VehicleData.EngineIntertia) + VehicleData.TransmissionCouplingScalar * ((_AverageDrivenWheelsRPM * GetCurrentGearRatio() * VehicleData.GearDifferential)- _CurrentEngineRPM) - VehicleData.EngineDrag * _CurrentEngineRPM;
 	_CurrentEngineRPM += rpmDelta * DeltaTime;
 	_CurrentEngineRPM = FMath::Clamp(_CurrentEngineRPM, 0.0f, VehicleData.MaxRPM);
-	
-	//TODO: IdleRPM
-
-	if (GEngine) GEngine->AddOnScreenDebugMessage(381799,-1, FColor::Green, FString::Printf(TEXT("Engine: RPM: %f RPM Delta: %f"), _CurrentEngineRPM, rpmDelta));
-	//if(GEngine) GEngine->AddOnScreenDebugMessage(34124,-1, FColor::Green, FString::Printf(TEXT("Expected Wheel; RPM: %f  Torque: %f LinearForce: %f"),expectedAxleRPM,expectedAxleTorque,expectedWheelLinearForce));
 }
 
 
 void AArcadeCarPawn::ApplyLongitudinalForces(TObjectPtr<UWheelSceneComponent> Wheel)
 {
 	if(Wheel == nullptr) return;
-	FVector force = (_CurrentEngineTorque * GetCurrentGearRatio() * VehicleData.GearDifferential / (Wheel->WheelRadius)) * Wheel->GetForwardVector();
-	force *= 100.0f;
+	FVector AcelForce = (_CurrentEngineTorque * GetCurrentGearRatio() * VehicleData.GearDifferential / (Wheel->WheelRadius)) * Wheel->GetForwardVector();
+	//FVector DecelForce = (VehicleData.BrakeForce * 100.0f * _BrakePedalPosition) * -Wheel->GetForwardVector();
+	AcelForce *= 100.0f * VehicleData.EngineForceMultiplier;
+	
+	//Decel forces:
+	const float RollingMagnitude = FVector::DotProduct(Wheel->GetForwardVector(), VehiclePhysicsComponent->GetPhysicsLinearVelocityAtPoint(Wheel->GetComponentLocation()));
+	//float targetVel = -RollingMagnitude * Wheel->TyreRollingResistance->GetFloatValue(RollingMagnitude / 100);
+	float targetVel = -RollingMagnitude * Wheel->TyreRollingResistance;
+	targetVel += FMath::Clamp((-RollingMagnitude * Wheel->WheelBrakeStrength) * _BrakePedalPosition, -Wheel->maxBrakingForce, Wheel->maxBrakingForce);
+	const float targetF = targetVel / GetWorld()->GetDeltaSeconds();
+	FVector DecelForce = Wheel->GetForwardVector() * targetF * (Wheel->TyreMass/10);
+	VehiclePhysicsComponent->AddForceAtLocation(DecelForce, Wheel->GetComponentLocation());
+	
+	//Throttle
 	if(_Throttle > 0)
 	{
 		switch (VehicleData.VehicleDriveType) {
 		case EVehicleDriveType::FrontWheelDrive:
 			if(Wheel == FL_Wheel || Wheel == FR_Wheel)
 			{
-				VehiclePhysicsComponent->AddForceAtLocation(force / 2, Wheel->GetComponentLocation());
+				VehiclePhysicsComponent->AddForceAtLocation(AcelForce / 2, Wheel->GetComponentLocation());
 			}
 			break;
 		case EVehicleDriveType::RearWheelDrive:
 			if(Wheel == RL_Wheel || Wheel == RR_Wheel)
 			{
-				VehiclePhysicsComponent->AddForceAtLocation(force / 2, Wheel->GetComponentLocation());
+				VehiclePhysicsComponent->AddForceAtLocation(AcelForce / 2, Wheel->GetComponentLocation());
 			}
 			break;
 		case EVehicleDriveType::AllWheelDrive:
-			
-			VehiclePhysicsComponent->AddForceAtLocation(force / 4, Wheel->GetComponentLocation());
+			VehiclePhysicsComponent->AddForceAtLocation(AcelForce / 4, Wheel->GetComponentLocation());
 			break;
 		default: ;
 		}
 	}
-	
-	if (_BrakePedalPosition > 0)
-	{
-		//TODO: BRAKING!!
-	}
-	UE_LOG(LogTemp,Warning,TEXT("Force: %s"),*force.ToString());
+
+#if WITH_EDITOR
+	if (GEngine) GEngine->AddOnScreenDebugMessage(99831, -1, FColor::Green, FString::Printf(TEXT("Forces; Acell: %f  Brake: %f"),AcelForce.Length(), DecelForce.Length()));
+#endif
 }
 
 #pragma endregion

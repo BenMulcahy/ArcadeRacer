@@ -31,11 +31,25 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float SuspensionDamping = 10.0f;
 	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float TyreGrip = 0.6f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float TyreRollingResistance = 0.2f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float WheelBrakeStrength = 100.0f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float maxBrakingForce = 1000.0f;
+	
+	/*
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) //TODO: 0-1 range 0 no grip 1 full grip
-	float TyreGrip = 0.1f;
+	TObjectPtr<UCurveFloat> TyreGripCurve;
 
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
-	float TyreRollingResistance = 0.6f;
+	TObjectPtr<UCurveFloat> TyreRollingResistance;
+	*/
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float TyreMass = 9.0;
@@ -48,7 +62,6 @@ public:
 	///Rads/S
 	float WheelAngularVelocity;
 	float WheelRPM;
-	float AxleRPM;
 	
 	//TODO: Make setters and getters and private these
 	float SuspensionForce = 0.0f;
