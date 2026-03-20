@@ -53,12 +53,6 @@ struct FVehicleData
 	float TurningSpeed = 3.0f;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	float MaxSpeed = 180.0f;
-	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	int32 GearUpRPM = 6800;
-	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	float RevUpSpeed = 4000.0f; //Rev/S
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)

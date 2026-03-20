@@ -47,7 +47,7 @@ public:
 	float MaxTyreForce = 12000.0f;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float TyreRollingResistance = 0.2f;
+	float RotationalDrag = 0.6f;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float WheelBrakeStrength = 100.0f;
@@ -72,6 +72,7 @@ public:
 	///Rads/S
 	float WheelAngularVelocity;
 	float WheelRPM;
+	float Torque;
 	
 	float CurrentGrip = 1.0f;
 	float CurrentLongitudinalForce = 0.0f;

@@ -26,6 +26,7 @@
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="HighlightingSettingsPerFile">
+    <setting file="file:///Applications/Epic/UE_5.7/Engine/Source/Editor/SkeletonEditor/Private/SBlendProfilePicker.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file:///Applications/Epic/UE_5.7/Engine/Source/Runtime/ApplicationCore/Private/IOS/IOSView.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file:///Applications/Epic/UE_5.7/Engine/Source/Runtime/Core/Public/GenericPlatform/GenericPlatformMath.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file:///Applications/Epic/UE_5.7/Engine/Source/Runtime/Core/Public/HAL/Platform.h" root0="FORCE_HIGHLIGHTING" />
@@ -175,7 +176,8 @@
       <workItem from="1773868948616" duration="2527000" />
       <workItem from="1773915578124" duration="3115000" />
       <workItem from="1773918824132" duration="3555000" />
-      <workItem from="1773927593752" duration="9231000" />
+      <workItem from="1773927593752" duration="15510000" />
+      <workItem from="1773961930513" duration="2385000" />
     </task>
     <servers />
   </component>
