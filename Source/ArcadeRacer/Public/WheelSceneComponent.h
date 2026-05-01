@@ -17,7 +17,7 @@ public:
 	UWheelSceneComponent();
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float WheelRadius = 34.0f;
+	float WheelRadius = 30.0f;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float SuspensionRestDistance = 50.0f;
@@ -66,13 +66,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float TyreMass = 9.0;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float WheelInertia = 1.0f;
-	
 	///Rads/S
 	float WheelAngularVelocity;
 	float WheelRPM;
-	float Torque;
 	
 	float CurrentGrip = 1.0f;
 	float CurrentLongitudinalForce = 0.0f;
@@ -92,10 +88,6 @@ public:
 	
 	UFUNCTION(BlueprintCallable)
 	virtual FVector GetWheelMeshLocation();
-
-	UFUNCTION(BlueprintCallable)
-	virtual float GetWheelAngularVelocity();
-	float GetWheelRPM();
 
 protected:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;

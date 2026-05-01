@@ -10,7 +10,10 @@
     <list default="true" id="b7e25c48-bbe6-44f2-8ebe-7227057e345f" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.ArcadeRacer.dir/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.ArcadeRacer.dir/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/Prototyping/BP_TestCar.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Prototyping/BP_TestCar.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Prototyping/TestCar_TC.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Prototyping/TestCar_TC.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Prototyping/TestMap.umap" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Prototyping/TestMap.umap" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/ArcadeRacer/Private/ArcadeCarPawn.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/ArcadeRacer/Private/ArcadeCarPawn.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/ArcadeRacer/Private/WheelSceneComponent.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/ArcadeRacer/Private/WheelSceneComponent.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/ArcadeRacer/Public/ArcadeCarPawn.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/ArcadeRacer/Public/ArcadeCarPawn.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/ArcadeRacer/Public/WheelSceneComponent.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/ArcadeRacer/Public/WheelSceneComponent.h" afterDir="false" />
     </list>
@@ -26,6 +29,8 @@
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="HighlightingSettingsPerFile">
+    <setting file="cidr-memory-view://0" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file:///Applications/Epic/UE_5.7/Engine/Plugins/Marketplace/Developer/RiderLink/Source/RD/thirdparty/spdlog/include/spdlog/fmt/bundled/color.h" root0="SKIP_HIGHLIGHTING" />
     <setting file="file:///Applications/Epic/UE_5.7/Engine/Source/Editor/SkeletonEditor/Private/SBlendProfilePicker.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file:///Applications/Epic/UE_5.7/Engine/Source/Runtime/ApplicationCore/Private/IOS/IOSView.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file:///Applications/Epic/UE_5.7/Engine/Source/Runtime/Core/Public/GenericPlatform/GenericPlatformMath.h" root0="FORCE_HIGHLIGHTING" />
@@ -178,6 +183,8 @@
       <workItem from="1773918824132" duration="3555000" />
       <workItem from="1773927593752" duration="15510000" />
       <workItem from="1773961930513" duration="2385000" />
+      <workItem from="1777556634364" duration="13168000" />
+      <workItem from="1777572143313" duration="27018000" />
     </task>
     <servers />
   </component>

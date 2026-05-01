@@ -53,12 +53,6 @@ struct FVehicleData
 	float TurningSpeed = 3.0f;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	float RevUpSpeed = 4000.0f; //Rev/S
-	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	float RevDownSpeed = 4200.0f; //Rev/S
-	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	TObjectPtr<UCurveFloat> TorqueCurve;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
@@ -71,19 +65,16 @@ struct FVehicleData
 	int32 IdleRPM = 1200;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	float EngineBreaking = 0.2f;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	float EngineFriction = 0.02f;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	float ReturnToIdleStrength = 2.0f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Vehicle Data | Engine")
 	float TransmissionCouplingScalar = 1.0f;
-	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "VehicleData | Engine")
-	float EngineIntertia = 0.4f;
-	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Vehicle Data | Engine")
-	float EngineDrag = 0.9f;
-	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "VehicleData | Engine")
-	float EngineForceMultiplier = 1.0f;
 	
 	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "Vehicle Data | Gearing")
 	TMap<FString, FGear> Gears = {
@@ -164,7 +155,7 @@ private:
 	float _CurrentEngineTorque = 0.0f;
 	FString _CurrentGear = "neutral";
 	
-	float _AverageDrivenWheelsRPM;
+	float _AverageDrivenWheelsAngularVelocity;
 	
 //Functions
 public:	
@@ -199,17 +190,6 @@ private:
 	///Returns force applied to wheel
 	void ApplySuspensionForce(TObjectPtr<UWheelSceneComponent> Wheel) const;
 	void ApplyLateralForces(TObjectPtr<UWheelSceneComponent> Wheel, float DeltaTime) const;
-
-	void UpdateCurrentWheelRotationalValues(TObjectPtr<UWheelSceneComponent> Wheel, float DeltaTime);
-	void CalculateWheelAngularVelocity(TObjectPtr<UWheelSceneComponent> Wheel, float DeltaTime);
 	void CalculateDriveTrain(float DeltaTime);
-	float GetEngineTorqueAtRPM(float RPM) const;
-	void ApplyLongitudinalForces(TObjectPtr<UWheelSceneComponent> Wheel);
-	float CalculateLongitudinalGrip(TObjectPtr<UWheelSceneComponent> Wheel);
-
-	//void GetForceAtWheels();
-	//void ApplyAccelerationForcesAtWheel(TObjectPtr<UWheelSceneComponent> Wheel);
-	//float GetTorqueAtRPM(float RPM) const;
-	//void CalculateRPMActual(float DeltaTime);
-	//void Calculatelongitudinalforces();
+	void TryRotateWheels(float DeltaTime);
 };

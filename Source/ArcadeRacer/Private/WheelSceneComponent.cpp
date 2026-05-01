@@ -23,17 +23,6 @@ FVector UWheelSceneComponent::GetWheelMeshLocation()
 	return WheelMeshTargetLocation;
 }
 
-//TODO: Rework -> This aint greate cus RPM will be wrong if angular Velocity isnt updated
-float UWheelSceneComponent::GetWheelAngularVelocity()
-{
-	return WheelAngularVelocity;
-}
-
-float UWheelSceneComponent::GetWheelRPM()
-{
-	return  WheelAngularVelocity * (60 / (2 * UE_PI));
-}
-
 void UWheelSceneComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 	FActorComponentTickFunction* ThisTickFunction)
 {
