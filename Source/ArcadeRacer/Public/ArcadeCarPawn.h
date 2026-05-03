@@ -68,9 +68,6 @@ struct FVehicleData
 	float EngineBreaking = 0.2f;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	float EngineFriction = 0.02f;
-	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	float ReturnToIdleStrength = 2.0f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Vehicle Data | Engine")
@@ -164,9 +161,11 @@ public:
 	
 	//Async Tick
 	virtual void AsyncPhysicsTickActor(float DeltaTime, float SimTime) override;
+	void ApplyLongitudinalForces(UWheelSceneComponent* Wheel);
 
 	void SetTargetWheelAngle(float turnVal);
 	void UpdateWheelAngle(float DeltaTime);
+	float GetTorqueAtWheels() const;
 	void SetAccelPedalPosition(float pedalVal);
 	void SetBrakePedalPosition(float pedalVal);
 
@@ -183,6 +182,8 @@ protected:
 	
 	UFUNCTION()
 	float GetCurrentGearRatio() const;
+	float GetExpectedRPMatWheels() const;
+	static float GetRPMatWheelActual(TObjectPtr<UWheelSceneComponent> Wheel);
 
 private:
 
@@ -190,6 +191,7 @@ private:
 	///Returns force applied to wheel
 	void ApplySuspensionForce(TObjectPtr<UWheelSceneComponent> Wheel) const;
 	void ApplyLateralForces(TObjectPtr<UWheelSceneComponent> Wheel, float DeltaTime) const;
-	void CalculateDriveTrain(float DeltaTime);
-	void TryRotateWheels(float DeltaTime);
+	void CalculateEngineRPM(float DeltaTime);
+	void CalculateWheelRPM(TObjectPtr<UWheelSceneComponent> Wheel, float DeltaTime);
+	//void TryRotateWheels(float DeltaTime);
 };

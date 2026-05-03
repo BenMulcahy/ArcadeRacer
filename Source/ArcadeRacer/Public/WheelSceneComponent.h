@@ -16,8 +16,8 @@ public:
 	// Sets default values for this component's properties
 	UWheelSceneComponent();
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float WheelRadius = 30.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) //Meters
+	float WheelRadius = 0.3f;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float SuspensionRestDistance = 50.0f;
