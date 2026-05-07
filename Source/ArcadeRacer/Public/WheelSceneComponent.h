@@ -66,8 +66,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float TyreMass = 9.0;
 	
-	///Rads/S
-	float WheelAngularVelocity;
 	float WheelRPM;
 	
 	float CurrentGrip = 1.0f;
@@ -88,6 +86,9 @@ public:
 	
 	UFUNCTION(BlueprintCallable)
 	virtual FVector GetWheelMeshLocation();
+	
+	UFUNCTION(BlueprintCallable)
+	virtual float GetAngularVelocity();
 
 protected:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;

@@ -223,6 +223,8 @@ void AArcadeCarPawn::AsyncPhysicsTickActor(float DeltaTime, float SimTime)
 
 			//Sliding and turning forces
 			ApplyLateralForces(currentWheel, DeltaTime);
+			
+			ApplyLongitudinalForces(currentWheel);
 		}
 	}
 	
@@ -350,19 +352,70 @@ void AArcadeCarPawn::CalculateWheelRPM(TObjectPtr<UWheelSceneComponent> Wheel,fl
 {
 	float Gains = GetTorqueAtWheels() / Wheel->TyreMass; //How much we can increase/Decrease RPM by from Engine
 	float Difference = GetExpectedRPMatWheels() - Wheel->WheelRPM; //Difference between what the engine wants RPM to be (this frame) and current wheel RPM as of last frame
-	float RotationalDrag = Wheel->RotationalDrag * Wheel->WheelRPM; //Wheel slow down unloaded (Frictions on the axle etc)
+	//float RotationalDrag = Wheel->RotationalDrag * Wheel->WheelRPM; //Wheel slow down unloaded (Frictions on the axle etc)
 	
-	if (_CurrentGear != "neutral")
-	{
-		float WheelRPMDelta = Gains + Difference - RotationalDrag;
-		Wheel->WheelRPM += WheelRPMDelta * DeltaTime;	
+	//Get Desired RPM at Wheels for current speed
+	float lVelocity = FVector::DotProduct(Wheel->GetForwardVector(), VehiclePhysicsComponent->GetPhysicsLinearVelocityAtPoint(Wheel->GetComponentLocation()));
+	float AngleVel = lVelocity / (Wheel->WheelRadius / 10);
+	float TargetRPMFromGroundSpeed = AngleVel / (60  / 2 * UE_PI);
+	
+	switch (VehicleData.VehicleDriveType) {
+	case EVehicleDriveType::FrontWheelDrive:
+		if (Wheel == FL_Wheel || Wheel == FR_Wheel)
+		{
+			if (_CurrentGear != "neutral")
+			{
+				float WheelRPMDelta = Gains + Difference;
+				Wheel->WheelRPM += WheelRPMDelta * DeltaTime;
+			}
+			else
+			{
+				float WheelRPMDelta = 0;
+				Wheel->WheelRPM += WheelRPMDelta * DeltaTime;
+			}
+			//UE_LOG(LogTemp, Warning, TEXT("%f"), Wheel->WheelRPM);
+		}
+		else
+		{
+			//If not driven wheel set rpm from vehicle speed
+		}
+		break;
+	case EVehicleDriveType::RearWheelDrive:
+		break;
+	case EVehicleDriveType::AllWheelDrive:
+		break;
+	
 	}
-	else
+}
+
+float AArcadeCarPawn::GetSlipRatio(TObjectPtr<UWheelSceneComponent> Wheel) const
+{
+	return (Wheel->GetAngularVelocity() * Wheel->WheelRadius) / VehiclePhysicsComponent->GetPhysicsLinearVelocityAtPoint(Wheel->GetComponentLocation()).Length() - 1; 
+}
+
+void AArcadeCarPawn::ApplyLongitudinalForces(TObjectPtr<UWheelSceneComponent> Wheel)
+{
+	float TractiveForce = GetTorqueAtWheels() / Wheel->WheelRadius;
+	UE_LOG(LogTemp, Warning, TEXT("TractiveForce = %f, SlipR: %f"), TractiveForce, GetSlipRatio(Wheel));
+	
+	FVector force = Wheel->GetForwardVector() * TractiveForce;
+	
+	if (Wheel->bIsGrounded)
 	{
-		float WheelRPMDelta = 0-RotationalDrag;
-		Wheel->WheelRPM += WheelRPMDelta * DeltaTime;
+		switch (VehicleData.VehicleDriveType) {
+		case EVehicleDriveType::FrontWheelDrive:
+			if (Wheel == FL_Wheel || Wheel == FR_Wheel)
+			{
+				VehiclePhysicsComponent->AddForceAtLocation(force,Wheel->GetComponentLocation());
+			}
+			break;
+		case EVehicleDriveType::RearWheelDrive:
+			break;
+		case EVehicleDriveType::AllWheelDrive:
+			break;
+	
+		}
 	}
-	UE_LOG(LogTemp, Warning, TEXT("%f"), Wheel->WheelRPM);
 }
 #pragma endregion
 #pragma endregion //End Physics Region

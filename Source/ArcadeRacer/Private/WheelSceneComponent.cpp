@@ -23,8 +23,13 @@ FVector UWheelSceneComponent::GetWheelMeshLocation()
 	return WheelMeshTargetLocation;
 }
 
+float UWheelSceneComponent::GetAngularVelocity()
+{
+	return (WheelRPM * 2 * UE_PI) / 60;
+}
+
 void UWheelSceneComponent::TickComponent(float DeltaTime, ELevelTick TickType,
-	FActorComponentTickFunction* ThisTickFunction)
+                                         FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 

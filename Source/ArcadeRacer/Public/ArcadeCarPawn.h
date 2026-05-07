@@ -161,7 +161,7 @@ public:
 	
 	//Async Tick
 	virtual void AsyncPhysicsTickActor(float DeltaTime, float SimTime) override;
-	void ApplyLongitudinalForces(UWheelSceneComponent* Wheel);
+	void ApplyLongitudinalForces(TObjectPtr<UWheelSceneComponent> Wheel);
 
 	void SetTargetWheelAngle(float turnVal);
 	void UpdateWheelAngle(float DeltaTime);
@@ -193,5 +193,6 @@ private:
 	void ApplyLateralForces(TObjectPtr<UWheelSceneComponent> Wheel, float DeltaTime) const;
 	void CalculateEngineRPM(float DeltaTime);
 	void CalculateWheelRPM(TObjectPtr<UWheelSceneComponent> Wheel, float DeltaTime);
+	float GetSlipRatio(TObjectPtr<UWheelSceneComponent> Wheel) const;
 	//void TryRotateWheels(float DeltaTime);
 };

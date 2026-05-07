@@ -12,6 +12,7 @@
       <change beforePath="$PROJECT_DIR$/Content/Prototyping/BP_TestCar.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Prototyping/BP_TestCar.uasset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/Prototyping/TestCar_TC.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Prototyping/TestCar_TC.uasset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/ArcadeRacer/Private/ArcadeCarPawn.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/ArcadeRacer/Private/ArcadeCarPawn.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/ArcadeRacer/Private/WheelSceneComponent.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/ArcadeRacer/Private/WheelSceneComponent.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/ArcadeRacer/Public/ArcadeCarPawn.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/ArcadeRacer/Public/ArcadeCarPawn.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/ArcadeRacer/Public/WheelSceneComponent.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/ArcadeRacer/Public/WheelSceneComponent.h" afterDir="false" />
     </list>
@@ -184,7 +185,10 @@
       <workItem from="1777572143313" duration="27018000" />
       <workItem from="1777672550131" duration="2615000" />
       <workItem from="1777716250571" duration="4333000" />
-      <workItem from="1777813811944" duration="1703000" />
+      <workItem from="1777813811944" duration="4001000" />
+      <workItem from="1777826500155" duration="791000" />
+      <workItem from="1777827627801" duration="1781000" />
+      <workItem from="1778150350662" duration="812000" />
     </task>
     <servers />
   </component>
